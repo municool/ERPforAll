@@ -1,4 +1,6 @@
+using ERPforAll.Server.Infrastructure;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+builder.Services.AddDbContextFactory<ErpDBContext>(
+        options =>
+            options.UseSqlServer(@"Server=localhost;Database=ERPforAll"));
 
 var app = builder.Build();
 

@@ -3,11 +3,16 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERPforAll.Server", "ERPforAll\Server\ERPforAll.Server.csproj", "{3EA1F152-6A40-4292-B826-DC136BBAAAAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ERPforAll.Server", "ERPforAll\Server\ERPforAll.Server.csproj", "{3EA1F152-6A40-4292-B826-DC136BBAAAAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERPforAll.Client", "ERPforAll\Client\ERPforAll.Client.csproj", "{68A7E6EF-8E64-4278-A6F5-8A1FEDC926D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ERPforAll.Client", "ERPforAll\Client\ERPforAll.Client.csproj", "{68A7E6EF-8E64-4278-A6F5-8A1FEDC926D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERPforAll.Shared", "ERPforAll\Shared\ERPforAll.Shared.csproj", "{34D10D7D-0554-4351-8EB9-CF98041AEB79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ERPforAll.Shared", "ERPforAll\Shared\ERPforAll.Shared.csproj", "{34D10D7D-0554-4351-8EB9-CF98041AEB79}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8CBA97AE-18F9-4F0A-AC79-25253BFD537C}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
