@@ -11,6 +11,8 @@ GO
 
 -- Tables
 
+USE ERPforAll
+GO
 -- Create a new table called '[Vendors]' in schema '[dbo]'
 -- Drop the table if it already exists
 IF OBJECT_ID('[dbo].[Vendors]', 'U') IS NOT NULL
@@ -20,9 +22,7 @@ GO
 CREATE TABLE [dbo].[Vendors]
 (
     [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
-    [ColumnName2] NVARCHAR(50) NOT NULL,
-    [ColumnName3] NVARCHAR(50) NOT NULL
-    -- Specify more columns here
+    [Name] NVARCHAR(50) NOT NULL,
 );
 GO
 
@@ -35,9 +35,7 @@ GO
 CREATE TABLE [dbo].[Customers]
 (
     [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
-    [ColumnName2] NVARCHAR(50) NOT NULL,
-    [ColumnName3] NVARCHAR(50) NOT NULL
-    -- Specify more columns here
+    [Name] NVARCHAR(50) NOT NULL,
 );
 GO
 
@@ -51,9 +49,9 @@ GO
 CREATE TABLE [dbo].[Items]
 (
     [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
-    [ColumnName2] NVARCHAR(50) NOT NULL,
-    [ColumnName3] NVARCHAR(50) NOT NULL
-    -- Specify more columns here
+    [Name] NVARCHAR(50) NOT NULL,
+    [Description] NVARCHAR(500),
+    [Price] FLOAT NOT NULL
 );
 GO
 
@@ -66,9 +64,16 @@ GO
 CREATE TABLE [dbo].[Sells]
 (
     [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
-    [ColumnName2] NVARCHAR(50) NOT NULL,
-    [ColumnName3] NVARCHAR(50) NOT NULL
-    -- Specify more columns here
+    [Amount] INT NOT NULL,
+    [Date] DATETIME NOT NULL,
+    [Price] FLOAT NOT NULL,
+    [FullfilledDate] DATETIME,
+    [TradeId] UNIQUEIDENTIFIER NOT NULL,
+    [ItemId] INT NOT NULL FOREIGN KEY REFERENCES Items(Id),
+    [CustomerId] INT NOT NULL FOREIGN KEY REFERENCES Customers(Id),
 );
 GO
+
+
+
 
