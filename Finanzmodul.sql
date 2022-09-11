@@ -74,6 +74,48 @@ CREATE TABLE [dbo].[Sells]
 );
 GO
 
+-- Create a new view called 'GetNotFullfilledSells' in schema 'dbo'
+-- Drop the view if it already exists
+IF EXISTS (
+SELECT *
+    FROM sys.views
+    JOIN sys.schemas
+    ON sys.views.schema_id = sys.schemas.schema_id
+    WHERE sys.schemas.name = N'dbo'
+    AND sys.views.name = N'GetNotFullfilledSells'
+)
+DROP VIEW dbo.GetNotFullfilledSells
+GO
+-- Create the view in the specified schema
+CREATE VIEW dbo.GetNotFullfilledSells
+AS
+    -- body of the view
+    SELECT s.Id AS Sell_Id,
+        c.Name AS Customer_Name,
+        i.Name AS Item,
+        s.FullfilledDate AS Fullfilment_Date
+    FROM dbo.Sells AS s
+    JOIN dbo.Items AS i on s.ItemID = i.ItemID
+    JOIN dbo.Customers AS c on s.CustomerID = c.CustomerID
+    WHERE s.FullfilledDate IS NULL
+        OR s.FullfilledDate > GETDATE()
+GO
 
-
-
+-- Create a new stored procedure called 'GetRevenueForItem' in schema 'dbo'
+-- Drop the stored procedure if it already exists
+IF EXISTS (
+SELECT *
+    FROM INFORMATION_SCHEMA.ROUTINES
+WHERE SPECIFIC_SCHEMA = N'dbo'
+    AND SPECIFIC_NAME = N'GetRevenueForItem'
+)
+DROP PROCEDURE dbo.GetRevenueForItem
+GO
+-- Create the stored procedure in the specified schema
+CREATE PROCEDURE dbo.GetRevenueForItem
+    @ItemId INT 
+AS
+    SELECT i.Name, SUM(s.Price) AS Revenue FROM Items AS i
+        JOIN Sells AS s ON s.ItemId = i.ItemId
+    ORDER BY i.Name
+GO

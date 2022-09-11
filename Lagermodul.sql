@@ -30,3 +30,28 @@ CREATE TABLE Stocks
     ItemId INT NOT NULL FOREIGN KEY REFERENCES Item(Id)
 );
 GO
+
+CREATE TRIGGER Update_Stock ON Sells
+  FOR INSERT
+AS
+BEGIN
+    DECLARE @amount INT, @itemId INT, @stock_amount INT, @stockId INT
+    SELECT @amount = Amount, @itemId = ItemId FROM INSERTED
+
+    SELECT TOP 1 @stockId = StockId, @stock_amount = Amount FROM Stocks
+        WHERE ItemId = @itemId AND (Amount > @amount OR Amount = @amount)
+
+    IF (@stockId IS NULL OR @stockId = 0)
+    BEGIN
+        RAISERROR('Item is not in stock', 16, 1)
+        ROLLBACK TRANSACTION
+        RETURN
+    END
+
+    UPDATE STOCKS 
+    SET Amount = @stock_amount - @amount
+    WHERE StockId = @stockid
+
+    RETURN
+END
+GO
