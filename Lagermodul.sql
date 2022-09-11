@@ -1,13 +1,13 @@
 USE ERPforAll
 GO
 
--- Create a new table called 'Warehouse'
+-- Create a new table called 'Warehouses'
 -- Drop the table if it already exists
-IF OBJECT_ID('Warehouse', 'U') IS NOT NULL
-DROP TABLE Warehouse
+IF OBJECT_ID('Warehouses', 'U') IS NOT NULL
+DROP TABLE Warehouses
 GO
 -- Create the table in the specified schema
-CREATE TABLE Warehouse
+CREATE TABLE Warehouses
 (
     WarehouseId INT NOT NULL PRIMARY KEY, -- primary key column
     Name [NVARCHAR](50) NOT NULL,
@@ -16,13 +16,13 @@ CREATE TABLE Warehouse
 );
 GO
 
--- Create a new table called 'Stock'
+-- Create a new table called 'Stocks'
 -- Drop the table if it already exists
-IF OBJECT_ID('Stock', 'U') IS NOT NULL
-DROP TABLE Stock
+IF OBJECT_ID('Stocks', 'U') IS NOT NULL
+DROP TABLE Stocks
 GO
 -- Create the table in the specified schema
-CREATE TABLE Stock
+CREATE TABLE Stocks
 (
     StockId INT NOT NULL PRIMARY KEY, -- primary key column
     Amount INT NOT NULL,
