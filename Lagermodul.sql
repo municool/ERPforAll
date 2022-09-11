@@ -31,6 +31,37 @@ CREATE TABLE Stocks
 );
 GO
 
+-- Create a new view called 'GetStocks' in schema 'dbo'
+-- Drop the view if it already exists
+IF EXISTS (
+SELECT *
+    FROM sys.views
+    JOIN sys.schemas
+    ON sys.views.schema_id = sys.schemas.schema_id
+    WHERE sys.schemas.name = N'dbo'
+    AND sys.views.name = N'GetStocks'
+)
+DROP VIEW dbo.GetStocks
+GO
+-- Create the view in the specified schema
+CREATE VIEW dbo.GetStocks
+AS
+    -- body of the view
+    SELECT s.Id AS Stock_Id,
+        s.Amount AS Stock_Amount,
+        i.Name AS Item, 
+        w.Name AS Warehouse,
+        w.Id AS Warehouse_Id,
+        i.Id AS Item_Id
+    FROM dbo.Stocks AS s
+    JOIN dbo.Warehouse AS w ON s.WarehouseID = w.Id
+    JOIN dbo.Items AS i ON i.Id = s.ItemID
+    ORDER BY i.Name
+GO
+
+
+
+
 CREATE TRIGGER Update_Stock ON Sells
   FOR INSERT
 AS

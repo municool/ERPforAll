@@ -19,3 +19,21 @@ CREATE TABLE Purchases
     [VendorId] INT NOT NULL FOREIGN KEY REFERENCES Vendors(Id),
 );
 GO
+
+-- Create a new view called 'GetVendors' in schema 'dbo'
+-- Drop the view if it already exists
+IF EXISTS (
+SELECT *
+    FROM sys.views
+    JOIN sys.schemas
+    ON sys.views.schema_id = sys.schemas.schema_id
+    WHERE sys.schemas.name = N'dbo'
+    AND sys.views.name = N'GetVendors'
+)
+DROP VIEW dbo.GetVendors
+GO
+CREATE VIEW dbo.GetVendors
+AS
+    SELECT *
+    FROM dbo.Vendors
+GO
