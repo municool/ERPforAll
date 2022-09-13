@@ -9,7 +9,7 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE Warehouses
 (
-    WarehouseId INT NOT NULL PRIMARY KEY, -- primary key column
+    Id INT NOT NULL PRIMARY KEY, -- primary key column
     Name [NVARCHAR](50) NOT NULL,
     Location [NVARCHAR](50) NOT NULL,
     MaxRoom INT NOT NULL
@@ -24,10 +24,10 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE Stocks
 (
-    StockId INT NOT NULL PRIMARY KEY, -- primary key column
+    Id INT NOT NULL PRIMARY KEY, -- primary key column
     Amount INT NOT NULL,
-    WarehouseId INT NOT NULL FOREIGN KEY REFERENCES Warehouse(Id),
-    ItemId INT NOT NULL FOREIGN KEY REFERENCES Item(Id)
+    WarehouseId INT NOT NULL FOREIGN KEY REFERENCES Warehouses(Id),
+    ItemId INT NOT NULL FOREIGN KEY REFERENCES Items(Id)
 );
 GO
 
@@ -54,9 +54,8 @@ AS
         w.Id AS Warehouse_Id,
         i.Id AS Item_Id
     FROM dbo.Stocks AS s
-    JOIN dbo.Warehouse AS w ON s.WarehouseID = w.Id
+    JOIN dbo.Warehouses AS w ON s.WarehouseID = w.Id
     JOIN dbo.Items AS i ON i.Id = s.ItemID
-    ORDER BY i.Name
 GO
 
 
@@ -69,7 +68,7 @@ BEGIN
     DECLARE @amount INT, @itemId INT, @stock_amount INT, @stockId INT
     SELECT @amount = Amount, @itemId = ItemId FROM INSERTED
 
-    SELECT TOP 1 @stockId = StockId, @stock_amount = Amount FROM Stocks
+    SELECT TOP 1 @stockId = Id, @stock_amount = Amount FROM Stocks
         WHERE ItemId = @itemId AND (Amount > @amount OR Amount = @amount)
 
     IF (@stockId IS NULL OR @stockId = 0)
@@ -81,7 +80,7 @@ BEGIN
 
     UPDATE STOCKS 
     SET Amount = @stock_amount - @amount
-    WHERE StockId = @stockid
+    WHERE Id = @stockid
 
     RETURN
 END

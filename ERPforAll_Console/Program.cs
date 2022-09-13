@@ -10,55 +10,35 @@ internal class Program
     {
         var rootCommand = new RootCommand("Console interface for ERPforAll Db");
 
-        rootCommand.AddCommand(CreateGetCommand());
-        rootCommand.AddCommand(CreateInsertCommand());
-
         rootCommand.SetHandler(() =>{
             Console.WriteLine("Test");
         });
 
-        await rootCommand.InvokeAsync(args);
-        // if (args.Length == 0)
-        // {
-        //     var versionString = Assembly.GetEntryAssembly()?
-        //                             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-        //                             .InformationalVersion
-        //                             .ToString();
+        var idOption = new Option<int>("--id");
+        var dataOption = new Option<string>("--data");
 
-        //     Console.WriteLine($"erpforall v{versionString}");
-        //     Console.WriteLine("-------------");
-        //     Console.WriteLine("\nUsage:");
-        //     Console.WriteLine("  erpforall <command>");
-        //     return;
-        // }
+        var vendorsCommand = new Command("vendors"); 
+        vendorsCommand.AddOption(idOption);
+        var customersCommand = new Command("customers");
+        customersCommand.AddOption(idOption);
+        var revenueCommand = new Command("revenue");
+        revenueCommand.AddOption(idOption);
+        var pendingPaymentsCommand = new Command("ppay");
+        pendingPaymentsCommand.AddOption(idOption);
+        var warehousesCommand = new Command("warehouse");
+        warehousesCommand.AddOption(idOption);
+        var stocksCommand = new Command("stock");
+        stocksCommand.AddOption(idOption);
+        var sellsCommand = new Command("sells");
+        sellsCommand.AddOption(idOption);
+        var purchasesCommand = new Command("purchase");
+        purchasesCommand.AddOption(idOption);
 
-        //TODO: Commands to add:
-        //          - create 
-        //          - get (get all or id)
-        //          - update
-        //          - remove 
-
-    }
-
-    static Command CreateInsertCommand()
-    {
-        return new Command("test");
-    }
-
-    static Command CreateGetCommand()
-    {
+        //Get Command
         var getCommand = new Command("get", "Get entries from the db");
-        var dataOption = new Option<string>("--data", "Which informations you want to get");
-        var idOption = new Option<int>("--id", "only gets the entry with the given id");
 
-        getCommand.AddOption(dataOption);
-        getCommand.AddOption(idOption);
 
-        var getHandler = new GetHandler();
-
-        getCommand.SetHandler((data, id) => getHandler.Handle(data, id), dataOption, idOption);
-
-        return getCommand;
+        rootCommand.AddCommand(getCommand);
+        await rootCommand.InvokeAsync(args);
     }
-
 }

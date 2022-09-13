@@ -95,8 +95,8 @@ AS
         i.Name AS Item,
         s.FullfilledDate AS Fullfilment_Date
     FROM dbo.Sells AS s
-    JOIN dbo.Items AS i on s.ItemID = i.ItemID
-    JOIN dbo.Customers AS c on s.CustomerID = c.CustomerID
+    JOIN dbo.Items AS i on s.ItemID = i.Id
+    JOIN dbo.Customers AS c on s.CustomerID = c.Id
     WHERE s.FullfilledDate IS NULL
         OR s.FullfilledDate > GETDATE()
 GO
@@ -115,7 +115,7 @@ GO
 CREATE PROCEDURE dbo.GetRevenueForItem
     @ItemId INT 
 AS
-    SELECT i.Name, SUM(s.Price) AS Revenue FROM Items AS i
-        JOIN Sells AS s ON s.ItemId = i.ItemId
-    ORDER BY i.Name
+    SELECT i.Name AS Itemname, SUM(s.Price) AS Revenue FROM Items AS i
+        JOIN Sells AS s ON s.ItemId = i.Id
+    GROUP BY i.Name
 GO
