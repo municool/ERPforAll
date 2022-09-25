@@ -11,7 +11,7 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddDbContextFactory<ErpDBContext>(
         options =>
-            options.UseSqlServer(@"Server=localhost;Database=ERPforAll"));
+            options.UseSqlServer(@"Server=localhost;Database=ERPforALL;Trusted_Connection=True;User Id=dbUser;Password=Dev_123!"));
 
 var app = builder.Build();
 

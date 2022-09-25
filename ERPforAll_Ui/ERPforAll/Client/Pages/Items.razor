@@ -1,7 +1,7 @@
 ﻿@page "/items"
 
 @using ERPforAll.Shared.Models
-
+@inject HttpClient http
 
 <div class="container">
     <div class="row py-5">
@@ -60,11 +60,13 @@
 </style>
 
 @code {
-    IEnumerable<Item> items;
+    Item[]? items;
 
-    protected override void OnInitialized()
+    protected override async void OnInitialized()
     {
         base.OnInitialized();
+
+        items = await http.GetFromJsonAsync<Item[]>("items");
 
     }
 }

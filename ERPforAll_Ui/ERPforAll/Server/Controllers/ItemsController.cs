@@ -5,53 +5,51 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ERPforAll.Server.Controllers
 {
-    public class CustomerController : ControllerBase
+    [ApiController]
+    [Route("[controller]")]
+    public class ItemsController : ControllerBase
     {
         private readonly IDbContextFactory<ErpDBContext> _dbContextFactory;
-
-        public CustomerController(IDbContextFactory<ErpDBContext> dbContextFactory)
+        public ItemsController(IDbContextFactory<ErpDBContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
         }
 
         [HttpGet]
-        public IEnumerable<Customer> GetAllCustomers()
+        public IEnumerable<Item> Get()
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                return context.Customers.ToList();
+                return context.Items.Include("Stocks").ToList();
             }
         }
 
-        [HttpGet]
-        public Customer? GetById(int id)
+        public Item? GetById(int id)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                return context.Customers.FirstOrDefault(v => v.Id == id);
+                return context.Items.FirstOrDefault(v => v.Id == id);
             }
         }
 
-        [HttpPost]
-        public void CreateItem(Customer newCustomer)
+        public void CreateItem(Item newItem)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                context.Customers.Add(newCustomer);
+                context.Items.Add(newItem);
                 context.SaveChanges();
             }
         }
 
-        [HttpPost]
-        public void UpdateItem(Customer customer)
+        public void UpdateItem(Item item)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                var oldItem = context.Customers.FirstOrDefault(i => i.Id == customer.Id);
+                var oldItem = context.Items.FirstOrDefault(i => i.Id == item.Id);
 
-                if (oldItem != null)
+                if(oldItem != null)
                 {
-                    context.Customers.Update(customer);
+                    context.Items.Update(item);
                 }
             }
         }
