@@ -21,7 +21,7 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE [dbo].[Vendors]
 (
-    [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
+    [Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1), -- Primary Key column
     [Name] NVARCHAR(50) NOT NULL,
 );
 GO
@@ -34,7 +34,7 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE [dbo].[Customers]
 (
-    [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
+    [Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1), -- Primary Key column
     [Name] NVARCHAR(50) NOT NULL,
 );
 GO
@@ -48,7 +48,7 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE [dbo].[Items]
 (
-    [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
+    [Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1), -- Primary Key column
     [Name] NVARCHAR(50) NOT NULL,
     [Description] NVARCHAR(500),
     [Price] FLOAT NOT NULL
@@ -63,7 +63,7 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE [dbo].[Sells]
 (
-    [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
+    [Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1), -- Primary Key column
     [Amount] INT NOT NULL,
     [Date] DATETIME NOT NULL,
     [Price] FLOAT NOT NULL,

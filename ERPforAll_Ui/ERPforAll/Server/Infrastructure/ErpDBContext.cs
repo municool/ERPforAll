@@ -36,8 +36,6 @@ namespace ERPforAll.Server.Infrastructure
         {
             modelBuilder.Entity<Customer>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Name).HasMaxLength(50);
             });
 
@@ -90,7 +88,6 @@ namespace ERPforAll.Server.Infrastructure
 
             modelBuilder.Entity<Item>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Description).HasMaxLength(500);
 
@@ -99,7 +96,6 @@ namespace ERPforAll.Server.Infrastructure
 
             modelBuilder.Entity<Purchase>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Date).HasColumnType("datetime");
 
@@ -120,7 +116,6 @@ namespace ERPforAll.Server.Infrastructure
 
             modelBuilder.Entity<Sell>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Date).HasColumnType("datetime");
 
@@ -141,8 +136,6 @@ namespace ERPforAll.Server.Infrastructure
 
             modelBuilder.Entity<Stock>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.HasOne(d => d.Item)
                     .WithMany(p => p.Stocks)
                     .HasForeignKey(d => d.ItemId)
@@ -158,14 +151,12 @@ namespace ERPforAll.Server.Infrastructure
 
             modelBuilder.Entity<Vendor>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Name).HasMaxLength(50);
             });
 
             modelBuilder.Entity<Warehouse>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.Location).HasMaxLength(50);
 

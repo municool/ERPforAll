@@ -9,7 +9,7 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE Purchases
 (
-    [Id] INT NOT NULL PRIMARY KEY, -- Primary Key column
+    [Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1), -- Primary Key column
     [Amount] INT NOT NULL,
     [Date] DATETIME NOT NULL,
     [Price] FLOAT NOT NULL,

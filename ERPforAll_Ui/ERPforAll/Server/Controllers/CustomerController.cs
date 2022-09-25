@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ERPforAll.Server.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class CustomerController : ControllerBase
     {
         private readonly IDbContextFactory<ErpDBContext> _dbContextFactory;
@@ -23,7 +25,7 @@ namespace ERPforAll.Server.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public Customer? GetById(int id)
         {
             using (var context = _dbContextFactory.CreateDbContext())
@@ -33,27 +35,30 @@ namespace ERPforAll.Server.Controllers
         }
 
         [HttpPost]
-        public void CreateItem(Customer newCustomer)
+        public IActionResult CreateItem([FromBody]Customer newCustomer)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
                 context.Customers.Add(newCustomer);
                 context.SaveChanges();
             }
+            return Ok();
         }
 
-        [HttpPost]
-        public void UpdateItem(Customer customer)
+        [HttpPost("{id}")]
+        public IActionResult UpdateItem(int id, [FromBody]Customer customer)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                var oldItem = context.Customers.FirstOrDefault(i => i.Id == customer.Id);
+                var oldItem = context.Customers.FirstOrDefault(i => i.Id == id);
 
                 if (oldItem != null)
                 {
                     context.Customers.Update(customer);
+                    context.SaveChanges();
                 }
             }
+            return Ok();
         }
     }
 }

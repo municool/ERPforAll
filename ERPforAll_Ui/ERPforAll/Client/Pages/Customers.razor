@@ -1,20 +1,132 @@
 ﻿@page "/customers"
 
+@using ERPforAll.Shared.Models
 
+@inject HttpClient http
 
 <PageTitle>Kunden</PageTitle>
 
 <h1>Kunden</h1>
 
-<p role="status">Current count: @currentCount</p>
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="New Customer" Click="@InsertRow" Disabled=@(customerToInsert != null) />
+<RadzenDataGrid @ref="customersGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                Data="@customers" TItem="Customer" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+    <Columns>
+        <RadzenDataGridColumn TItem="Customer" Property="Id" Title="Customer Id" />
+        <RadzenDataGridColumn TItem="Customer" Property="Name" Title="Customer">
+            <EditTemplate Context="customer">
+                <RadzenTextBox @bind-Value="customer.Name" Style="width:100%; display: block" Name="Name" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Customer" Context="whateaver" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="customer">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(customer))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="customer">
+                <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(customer))" />
+                <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(customer))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        @*        <RadzenDataGridColumn TItem="Customer" Context="customer" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="80px">
+        <Template Context="customer">
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(customer))" @onclick:stopPropagation="true">
+        </RadzenButton>
+        </Template>
+        <EditTemplate Context="customer">
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(customer))">
+        </RadzenButton>
+        </EditTemplate>
+        </RadzenDataGridColumn>*@
+    </Columns>
+</RadzenDataGrid>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
 @code {
-    private int currentCount = 0;
+    RadzenDataGrid<Customer>? customersGrid;
+    IEnumerable<Customer> customers = new List<Customer>();
 
-    private void IncrementCount()
+    protected override async void OnInitialized()
     {
-        currentCount++;
+        base.OnInitialized();
+
+        customers = (await http.GetFromJsonAsync<Customer[]>("customer"))?.ToList() ?? new List<Customer>();
+        StateHasChanged();
+
+    }
+    async Task EditRow(Customer customer)
+    {
+        await customersGrid.EditRow(customer);
+    }
+
+    async void OnUpdateRow(Customer customer)
+    {
+        if (customer == customerToInsert)
+        {
+            customerToInsert = null;
+        }
+
+        _ = await http.PostAsJsonAsync($"customer/{customer.Id}", customer);
+        StateHasChanged();
+    }
+
+    async Task SaveRow(Customer customer)
+    {
+        if (customer == customerToInsert)
+        {
+            customerToInsert = null;
+        }
+
+        await customersGrid.UpdateRow(customer);
+    }
+
+    void CancelEdit(Customer customer)
+    {
+        if (customer == customerToInsert)
+        {
+            customerToInsert = null;
+        }
+
+        customersGrid.CancelEditRow(customer);
+
+    }
+
+    //async Task DeleteRow(Customer customer)
+    //{
+    //    if (customer == customerToInsert)
+    //    {
+    //        customerToInsert = null;
+    //    }
+
+    //    if (customers.Contains(customer))
+    //    {
+    //        dbContext.Remove<Customer>(customer);
+
+    //        // For demo purposes only
+    //        customers.Remove(customer);
+
+    //        // For production
+    //        //dbContext.SaveChanges();
+
+    //        await customersGrid.Reload();
+    //    }
+    //    else
+    //    {
+    //        customersGrid.CancelEditRow(customer);
+    //    }
+    //}
+
+    Customer? customerToInsert;
+
+    async Task InsertRow()
+    {
+        customerToInsert = new Customer();
+
+        await customersGrid.InsertRow(customerToInsert);
+    }
+
+    async void OnCreateRow(Customer customer)
+    {
+        _ = await http.PostAsJsonAsync("customer", customer);
     }
 }

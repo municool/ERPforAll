@@ -9,7 +9,7 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE Warehouses
 (
-    Id INT NOT NULL PRIMARY KEY, -- primary key column
+    Id INT NOT NULL PRIMARY KEY IDENTITY(1,1), -- primary key column
     Name [NVARCHAR](50) NOT NULL,
     Location [NVARCHAR](50) NOT NULL,
     MaxRoom INT NOT NULL
@@ -24,7 +24,7 @@ GO
 -- Create the table in the specified schema
 CREATE TABLE Stocks
 (
-    Id INT NOT NULL PRIMARY KEY, -- primary key column
+    Id INT NOT NULL PRIMARY KEY IDENTITY(1,1), -- primary key column
     Amount INT NOT NULL,
     WarehouseId INT NOT NULL FOREIGN KEY REFERENCES Warehouses(Id),
     ItemId INT NOT NULL FOREIGN KEY REFERENCES Items(Id)
