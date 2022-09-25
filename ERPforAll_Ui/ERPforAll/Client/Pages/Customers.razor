@@ -128,5 +128,6 @@
     async void OnCreateRow(Customer customer)
     {
         _ = await http.PostAsJsonAsync("customer", customer);
+        StateHasChanged();
     }
 }

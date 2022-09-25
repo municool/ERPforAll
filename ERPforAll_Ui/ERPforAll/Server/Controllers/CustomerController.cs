@@ -1,4 +1,5 @@
-﻿using ERPforAll.Server.Infrastructure;
+﻿using ERPforAll.Client.Pages;
+using ERPforAll.Server.Infrastructure;
 using ERPforAll.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,26 +36,28 @@ namespace ERPforAll.Server.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateItem([FromBody]Customer newCustomer)
+        public IActionResult CreateItem([FromBody] Customer customer)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                context.Customers.Add(newCustomer);
+                context.Customers.Add(customer);
                 context.SaveChanges();
             }
             return Ok();
         }
 
         [HttpPost("{id}")]
-        public IActionResult UpdateItem(int id, [FromBody]Customer customer)
+        public IActionResult UpdateItem(int id, [FromBody] Customer customer)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                var oldItem = context.Customers.FirstOrDefault(i => i.Id == id);
+                var oldCustomer = context.Customers.Find(customer.Id);
 
-                if (oldItem != null)
+                if (oldCustomer != null)
                 {
-                    context.Customers.Update(customer);
+                    oldCustomer.Name = customer.Name;
+
+                    context.Customers.Update(oldCustomer);
                     context.SaveChanges();
                 }
             }
