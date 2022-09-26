@@ -1,0 +1,174 @@
+﻿@page "/sells"
+
+@using ERPforAll.Shared.Models
+
+@inject HttpClient http
+
+<PageTitle>Sells</PageTitle>
+
+<h1>Sells</h1>
+
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="New Sell" Click="@InsertRow" Disabled=@(sellToInsert != null) />
+<RadzenDataGrid @ref="sellsGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                Data="@sells" TItem="Sell" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+    <Columns>
+        <RadzenDataGridColumn TItem="Sell" Property="Id" Title="Sell Id" />
+        <RadzenDataGridColumn TItem="Sell" Property="Item.Name" Title="Item">
+            <EditTemplate Context="sell">
+                <RadzenDropDown @bind-Value="sell.Item" Data="@items" TextProperty="Item" ValueProperty="Item" Style="width:100%; display: block;">
+                    <Template>
+                        @context.Name
+                    </Template>
+                </RadzenDropDown>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Sell" Property="Customer.Name" Title="Customer">
+            <EditTemplate Context="sell">
+                <RadzenDropDown @bind-Value="sell.Customer" Data="@customers" TextProperty="Customer" ValueProperty="Customer" Style="width:100%; display: block;">
+                    <Template>
+                        @context.Name
+                    </Template>
+                </RadzenDropDown>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Sell" Property="Amount" Title="Amount">
+            <EditTemplate Context="sell">
+                <RadzenNumeric @bind-Value="sell.Amount" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Sell" Property="Price" Title="Price">
+            <EditTemplate Context="sell">
+                <RadzenNumeric @bind-Value="sell.Price" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Sell" Property="Date" Title="Date" Width="200px">
+            <Template Context="sell">
+                @String.Format("{0:d}", sell.Date)
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Sell" Property="FullfilledDate" Title="Fullfillment Date" Width="200px">
+            <Template Context="sell">
+                @String.Format("{0:d}", sell.FullfilledDate)
+            </Template>
+            <EditTemplate Context="sell">
+                <RadzenDatePicker @bind-Value="sell.FullfilledDate" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Sell" Context="whateaver" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="sell">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(sell))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="sell">
+                <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(sell))" />
+                <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(sell))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        @*        <RadzenDataGridColumn TItem="Sell" Context="sell" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="80px">
+        <Template Context="sell">one
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(sell))" @onclick:stopPropagation="true">
+        </RadzenButton>
+        </Template>
+        <EditTemplate Context="sell">
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(sell))">
+        </RadzenButton>
+        </EditTemplate>
+        </RadzenDataGridColumn>*@
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    RadzenDataGrid<Sell>? sellsGrid;
+    IEnumerable<Sell> sells = new List<Sell>();
+    IEnumerable<Customer> customers = new List<Customer>();
+    IEnumerable<Item> items = new List<Item>();
+
+    protected override async void OnInitialized()
+    {
+        base.OnInitialized();
+
+        sells = (await http.GetFromJsonAsync<Sell[]>("sell"))?.ToList() ?? new List<Sell>();
+        customers = (await http.GetFromJsonAsync<Customer[]>("customer"))?.ToList() ?? new List<Customer>();
+        items = (await http.GetFromJsonAsync<Item[]>("items"))?.ToList() ?? new List<Item>();
+
+        StateHasChanged();
+
+    }
+    async Task EditRow(Sell sell)
+    {
+        await sellsGrid.EditRow(sell);
+    }
+
+    async void OnUpdateRow(Sell sell)
+    {
+        if (sell == sellToInsert)
+        {
+            sellToInsert = null;
+        }
+
+        _ = await http.PostAsJsonAsync($"sell/{sell.Id}", sell);
+        StateHasChanged();
+    }
+
+    async Task SaveRow(Sell sell)
+    {
+        if (sell == sellToInsert)
+        {
+            sellToInsert = null;
+        }
+
+        await sellsGrid.UpdateRow(sell);
+    }
+
+    void CancelEdit(Sell sell)
+    {
+        if (sell == sellToInsert)
+        {
+            sellToInsert = null;
+        }
+
+        sellsGrid.CancelEditRow(sell);
+
+    }
+
+    //async Task DeleteRow(Sell sell)
+    //{
+    //    if (sell == sellToInsert)
+    //    {
+    //        sellToInsert = null;
+    //    }
+
+    //    if (sells.Contains(sell))
+    //    {
+    //        dbContext.Remove<Sell>(sell);
+
+    //        // For demo purposes only
+    //        sells.Remove(sell);
+
+    //        // For production
+    //        //dbContext.SaveChanges();
+
+    //        await sellsGrid.Reload();
+    //    }
+    //    else
+    //    {
+    //        sellsGrid.CancelEditRow(sell);
+    //    }
+    //}
+
+    Sell? sellToInsert;
+
+    async Task InsertRow()
+    {
+        sellToInsert = new Sell();
+
+        await sellsGrid.InsertRow(sellToInsert);
+    }
+
+    async void OnCreateRow(Sell sell)
+    {
+        _ = await http.PostAsJsonAsync("sell", sell);
+        StateHasChanged();
+    }
+}

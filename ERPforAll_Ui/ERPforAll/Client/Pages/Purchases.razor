@@ -1,0 +1,174 @@
+﻿@page "/purchases"
+
+@using ERPforAll.Shared.Models
+
+@inject HttpClient http
+
+<PageTitle>Purchases</PageTitle>
+
+<h1>Purchases</h1>
+
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="New Purchase" Click="@InsertRow" Disabled=@(purchaseToInsert != null) />
+<RadzenDataGrid @ref="purchasesGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                Data="@purchases" TItem="Purchase" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+    <Columns>
+        <RadzenDataGridColumn TItem="Purchase" Property="Id" Title="Purchase Id" />
+        <RadzenDataGridColumn TItem="Purchase" Property="Item.Name" Title="Item">
+            <EditTemplate Context="purchase">
+                <RadzenDropDown @bind-Value="purchase.Item" Data="@items" TextProperty="Item" ValueProperty="Item" Style="width:100%; display: block;">
+                    <Template>
+                        @context.Name
+                    </Template>
+                </RadzenDropDown>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Purchase" Property="Vendor.Name" Title="Vendor">
+            <EditTemplate Context="purchase">
+                <RadzenDropDown @bind-Value="purchase.Vendor" Data="@vendors" TextProperty="Vendor" ValueProperty="Vendor" Style="width:100%; display: block;">
+                    <Template>
+                        @context.Name
+                    </Template>
+                </RadzenDropDown>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Purchase" Property="Amount" Title="Amount">
+            <EditTemplate Context="purchase">
+                <RadzenNumeric @bind-Value="purchase.Amount" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Purchase" Property="Price" Title="Price">
+            <EditTemplate Context="purchase">
+                <RadzenNumeric @bind-Value="purchase.Price" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Purchase" Property="Date" Title="Date" Width="200px">
+            <Template Context="purchase">
+                @String.Format("{0:d}", purchase.Date)
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Purchase" Property="FullfilledDate" Title="Fullfillment Date" Width="200px">
+            <Template Context="purchase">
+                @String.Format("{0:d}", purchase.FullfilledDate)
+            </Template>
+            <EditTemplate Context="purchase">
+                <RadzenDatePicker @bind-Value="purchase.FullfilledDate" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Purchase" Context="whateaver" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="purchase">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(purchase))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="purchase">
+                <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(purchase))" />
+                <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(purchase))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        @*        <RadzenDataGridColumn TItem="Purchase" Context="purchase" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="80px">
+        <Template Context="purchase">one
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(purchase))" @onclick:stopPropagation="true">
+        </RadzenButton>
+        </Template>
+        <EditTemplate Context="purchase">
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(purchase))">
+        </RadzenButton>
+        </EditTemplate>
+        </RadzenDataGridColumn>*@
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    RadzenDataGrid<Purchase>? purchasesGrid;
+    IEnumerable<Purchase> purchases = new List<Purchase>();
+    IEnumerable<Vendor> vendors = new List<Vendor>();
+    IEnumerable<Item> items = new List<Item>();
+
+    protected override async void OnInitialized()
+    {
+        base.OnInitialized();
+
+        purchases = (await http.GetFromJsonAsync<Purchase[]>("purchase"))?.ToList() ?? new List<Purchase>();
+        vendors = (await http.GetFromJsonAsync<Vendor[]>("vendor"))?.ToList() ?? new List<Vendor>();
+        items = (await http.GetFromJsonAsync<Item[]>("items"))?.ToList() ?? new List<Item>();
+
+        StateHasChanged();
+
+    }
+    async Task EditRow(Purchase purchase)
+    {
+        await purchasesGrid.EditRow(purchase);
+    }
+
+    async void OnUpdateRow(Purchase purchase)
+    {
+        if (purchase == purchaseToInsert)
+        {
+            purchaseToInsert = null;
+        }
+
+        _ = await http.PostAsJsonAsync($"purchase/{purchase.Id}", purchase);
+        StateHasChanged();
+    }
+
+    async Task SaveRow(Purchase purchase)
+    {
+        if (purchase == purchaseToInsert)
+        {
+            purchaseToInsert = null;
+        }
+
+        await purchasesGrid.UpdateRow(purchase);
+    }
+
+    void CancelEdit(Purchase purchase)
+    {
+        if (purchase == purchaseToInsert)
+        {
+            purchaseToInsert = null;
+        }
+
+        purchasesGrid.CancelEditRow(purchase);
+
+    }
+
+    //async Task DeleteRow(Purchase purchase)
+    //{
+    //    if (purchase == purchaseToInsert)
+    //    {
+    //        purchaseToInsert = null;
+    //    }
+
+    //    if (purchases.Contains(purchase))
+    //    {
+    //        dbContext.Remove<Purchase>(purchase);
+
+    //        // For demo purposes only
+    //        purchases.Remove(purchase);
+
+    //        // For production
+    //        //dbContext.SaveChanges();
+
+    //        await purchasesGrid.Reload();
+    //    }
+    //    else
+    //    {
+    //        purchasesGrid.CancelEditRow(purchase);
+    //    }
+    //}
+
+    Purchase? purchaseToInsert;
+
+    async Task InsertRow()
+    {
+        purchaseToInsert = new Purchase();
+
+        await purchasesGrid.InsertRow(purchaseToInsert);
+    }
+
+    async void OnCreateRow(Purchase purchase)
+    {
+        _ = await http.PostAsJsonAsync("purchase", purchase);
+        StateHasChanged();
+    }
+}
