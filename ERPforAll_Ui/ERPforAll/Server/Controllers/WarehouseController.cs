@@ -7,56 +7,56 @@ namespace ERPforAll.Server.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class VendorController : ControllerBase
+    public class WarehouseController : ControllerBase
     {
         private readonly IDbContextFactory<ErpDBContext> _dbContextFactory;
 
-        public VendorController(IDbContextFactory<ErpDBContext> dbContextFactory)
+        public WarehouseController(IDbContextFactory<ErpDBContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
         }
 
         [HttpGet]
-        public IEnumerable<Vendor> GetAllVendors()
+        public IEnumerable<Warehouse> GetAllWarehouses()
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                return context.Vendors.ToList();
+                return context.Warehouses.ToList();
             }
         }
 
         [HttpGet("{id}")]
-        public Vendor? GetById(int id)
+        public Warehouse? GetById(int id)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                return context.Vendors.FirstOrDefault(v => v.Id == id);
+                return context.Warehouses.FirstOrDefault(v => v.Id == id);
             }
         }
 
         [HttpPost]
-        public IActionResult CreateItem([FromBody] Vendor vendor)
+        public IActionResult CreateItem([FromBody] Warehouse warehouse)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                context.Vendors.Add(vendor);
+                context.Warehouses.Add(warehouse);
                 context.SaveChanges();
             }
             return Ok();
         }
 
         [HttpPost("{id}")]
-        public IActionResult UpdateItem(int id, [FromBody] Vendor vendor)
+        public IActionResult UpdateItem(int id, [FromBody] Warehouse warehouse)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                var oldVendor = context.Vendors.Find(vendor.Id);
+                var oldWarehouse = context.Warehouses.Find(warehouse.Id);
 
-                if (oldVendor != null)
+                if (oldWarehouse != null)
                 {
-                    oldVendor.Name = vendor.Name;
+                    oldWarehouse.Name = warehouse.Name;
 
-                    context.Vendors.Update(oldVendor);
+                    context.Warehouses.Update(oldWarehouse);
                     context.SaveChanges();
                 }
             }

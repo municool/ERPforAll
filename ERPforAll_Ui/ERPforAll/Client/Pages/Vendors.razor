@@ -1,57 +1,132 @@
 ﻿@page "/vendors"
-@inject HttpClient Http
+
+@using ERPforAll.Shared.Models
+@inject HttpClient http
 
 <PageTitle>Lieferanten</PageTitle>
 
 <h1>Lieferanten</h1>
 
-<p>This component demonstrates fetching data from the server.</p>
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="New Vendor" Click="@InsertRow" Disabled=@(vendorToInsert != null) />
+<RadzenDataGrid @ref="vendorsGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                Data="@vendors" TItem="Vendor" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+    <Columns>
+        <RadzenDataGridColumn TItem="Vendor" Property="Id" Title="Vendor Id" />
+        <RadzenDataGridColumn TItem="Vendor" Property="Name" Title="Vendor">
+            <EditTemplate Context="vendor">
+                <RadzenTextBox @bind-Value="vendor.Name" Style="width:100%; display: block" Name="Name" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Vendor" Context="whateaver" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="vendor">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(vendor))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="vendor">
+                <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(vendor))" />
+                <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(vendor))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        @*        <RadzenDataGridColumn TItem="Vendor" Context="vendor" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="80px">
+        <Template Context="vendor">one
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(vendor))" @onclick:stopPropagation="true">
+        </RadzenButton>
+        </Template>
+        <EditTemplate Context="vendor">
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(vendor))">
+        </RadzenButton>
+        </EditTemplate>
+        </RadzenDataGridColumn>*@
+    </Columns>
+</RadzenDataGrid>
 
-@if (forecasts == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
 @code {
-    private WeatherForecast[]? forecasts;
+    RadzenDataGrid<Vendor>? vendorsGrid;
+    IEnumerable<Vendor> vendors = new List<Vendor>();
 
-    protected override async Task OnInitializedAsync()
+    protected override async void OnInitialized()
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        base.OnInitialized();
+
+        vendors = (await http.GetFromJsonAsync<Vendor[]>("vendor"))?.ToList() ?? new List<Vendor>();
+        StateHasChanged();
+
+    }
+    async Task EditRow(Vendor vendor)
+    {
+        await vendorsGrid.EditRow(vendor);
     }
 
-    public class WeatherForecast
+    async void OnUpdateRow(Vendor vendor)
     {
-        public DateTime Date { get; set; }
+        if (vendor == vendorToInsert)
+        {
+            vendorToInsert = null;
+        }
 
-        public int TemperatureC { get; set; }
+        _ = await http.PostAsJsonAsync($"vendor/{vendor.Id}", vendor);
+        StateHasChanged();
+    }
 
-        public string? Summary { get; set; }
+    async Task SaveRow(Vendor vendor)
+    {
+        if (vendor == vendorToInsert)
+        {
+            vendorToInsert = null;
+        }
 
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        await vendorsGrid.UpdateRow(vendor);
+    }
+
+    void CancelEdit(Vendor vendor)
+    {
+        if (vendor == vendorToInsert)
+        {
+            vendorToInsert = null;
+        }
+
+        vendorsGrid.CancelEditRow(vendor);
+
+    }
+
+    //async Task DeleteRow(Vendor vendor)
+    //{
+    //    if (vendor == vendorToInsert)
+    //    {
+    //        vendorToInsert = null;
+    //    }
+
+    //    if (vendors.Contains(vendor))
+    //    {
+    //        dbContext.Remove<Vendor>(vendor);
+
+    //        // For demo purposes only
+    //        vendors.Remove(vendor);
+
+    //        // For production
+    //        //dbContext.SaveChanges();
+
+    //        await vendorsGrid.Reload();
+    //    }
+    //    else
+    //    {
+    //        vendorsGrid.CancelEditRow(vendor);
+    //    }
+    //}
+
+    Vendor? vendorToInsert;
+
+    async Task InsertRow()
+    {
+        vendorToInsert = new Vendor();
+
+        await vendorsGrid.InsertRow(vendorToInsert);
+    }
+
+    async void OnCreateRow(Vendor vendor)
+    {
+        _ = await http.PostAsJsonAsync("vendor", vendor);
+        StateHasChanged();
     }
 }

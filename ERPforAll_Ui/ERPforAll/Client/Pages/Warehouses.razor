@@ -1,7 +1,142 @@
 ﻿@page "/warehouses"
 
-<PageTitle>Lagerhäuser</PageTitle>
+@using ERPforAll.Shared.Models
+@inject HttpClient http
+
+<PageTitle>Lieferanten</PageTitle>
+
+<h1>Lieferanten</h1>
+
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="New Warehouse" Click="@InsertRow" Disabled=@(warehouseToInsert != null) />
+<RadzenDataGrid @ref="warehousesGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                Data="@warehouses" TItem="Warehouse" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+    <Columns>
+        <RadzenDataGridColumn TItem="Warehouse" Property="Id" Title="Warehouse Id" />
+        <RadzenDataGridColumn TItem="Warehouse" Property="Name" Title="Warehouse">
+            <EditTemplate Context="warehouse">
+                <RadzenTextBox @bind-Value="warehouse.Name" Style="width:100%; display: block" Name="Name" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Warehouse" Property="Location" Title="Location">
+            <EditTemplate Context="warehouse">
+                <RadzenTextBox @bind-Value="warehouse.Location" Style="width:100%; display: block" Name="Name" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Warehouse" Property="MaxRoom" Title="Max. Room">
+            <EditTemplate Context="warehouse">
+                <RadzenNumeric @bind-Value="warehouse.MaxRoom" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Warehouse" Context="whateaver" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="warehouse">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(warehouse))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="warehouse">
+                <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(warehouse))" />
+                <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(warehouse))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        @*        <RadzenDataGridColumn TItem="Warehouse" Context="warehouse" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="80px">
+        <Template Context="warehouse">one
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(warehouse))" @onclick:stopPropagation="true">
+        </RadzenButton>
+        </Template>
+        <EditTemplate Context="warehouse">
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(warehouse))">
+        </RadzenButton>
+        </EditTemplate>
+        </RadzenDataGridColumn>*@
+    </Columns>
+</RadzenDataGrid>
+
 
 @code {
+    RadzenDataGrid<Warehouse>? warehousesGrid;
+    IEnumerable<Warehouse> warehouses = new List<Warehouse>();
 
+    protected override async void OnInitialized()
+    {
+        base.OnInitialized();
+
+        warehouses = (await http.GetFromJsonAsync<Warehouse[]>("warehouse"))?.ToList() ?? new List<Warehouse>();
+        StateHasChanged();
+
+    }
+    async Task EditRow(Warehouse warehouse)
+    {
+        await warehousesGrid.EditRow(warehouse);
+    }
+
+    async void OnUpdateRow(Warehouse warehouse)
+    {
+        if (warehouse == warehouseToInsert)
+        {
+            warehouseToInsert = null;
+        }
+
+        _ = await http.PostAsJsonAsync($"warehouse/{warehouse.Id}", warehouse);
+        StateHasChanged();
+    }
+
+    async Task SaveRow(Warehouse warehouse)
+    {
+        if (warehouse == warehouseToInsert)
+        {
+            warehouseToInsert = null;
+        }
+
+        await warehousesGrid.UpdateRow(warehouse);
+    }
+
+    void CancelEdit(Warehouse warehouse)
+    {
+        if (warehouse == warehouseToInsert)
+        {
+            warehouseToInsert = null;
+        }
+
+        warehousesGrid.CancelEditRow(warehouse);
+
+    }
+
+    //async Task DeleteRow(Warehouse warehouse)
+    //{
+    //    if (warehouse == warehouseToInsert)
+    //    {
+    //        warehouseToInsert = null;
+    //    }
+
+    //    if (warehouses.Contains(warehouse))
+    //    {
+    //        dbContext.Remove<Warehouse>(warehouse);
+
+    //        // For demo purposes only
+    //        warehouses.Remove(warehouse);
+
+    //        // For production
+    //        //dbContext.SaveChanges();
+
+    //        await warehousesGrid.Reload();
+    //    }
+    //    else
+    //    {
+    //        warehousesGrid.CancelEditRow(warehouse);
+    //    }
+    //}
+
+    Warehouse? warehouseToInsert;
+
+    async Task InsertRow()
+    {
+        warehouseToInsert = new Warehouse();
+
+        await warehousesGrid.InsertRow(warehouseToInsert);
+    }
+
+    async void OnCreateRow(Warehouse warehouse)
+    {
+        _ = await http.PostAsJsonAsync("warehouse", warehouse);
+        StateHasChanged();
+    }
 }
