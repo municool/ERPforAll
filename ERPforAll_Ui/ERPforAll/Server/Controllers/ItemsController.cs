@@ -10,20 +10,22 @@ namespace ERPforAll.Server.Controllers
     public class ItemsController : ControllerBase
     {
         private readonly IDbContextFactory<ErpDBContext> _dbContextFactory;
+
         public ItemsController(IDbContextFactory<ErpDBContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
         }
 
         [HttpGet]
-        public IEnumerable<Item> Get()
+        public IEnumerable<Item> GetAllItems()
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                return context.Items.Include("Stocks").ToList();
+                return context.Items.ToList();
             }
         }
 
+        [HttpGet("{id}")]
         public Item? GetById(int id)
         {
             using (var context = _dbContextFactory.CreateDbContext())
@@ -32,26 +34,33 @@ namespace ERPforAll.Server.Controllers
             }
         }
 
-        public void CreateItem(Item newItem)
+        [HttpPost]
+        public IActionResult CreateItem([FromBody] Item item)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                context.Items.Add(newItem);
+                context.Items.Add(item);
                 context.SaveChanges();
             }
+            return Ok();
         }
 
-        public void UpdateItem(Item item)
+        [HttpPost("{id}")]
+        public IActionResult UpdateItem(int id, [FromBody] Item item)
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                var oldItem = context.Items.FirstOrDefault(i => i.Id == item.Id);
+                var oldItem = context.Items.Find(item.Id);
 
-                if(oldItem != null)
+                if (oldItem != null)
                 {
-                    context.Items.Update(item);
+                    oldItem.Name = item.Name;
+
+                    context.Items.Update(oldItem);
+                    context.SaveChanges();
                 }
             }
+            return Ok();
         }
     }
 }

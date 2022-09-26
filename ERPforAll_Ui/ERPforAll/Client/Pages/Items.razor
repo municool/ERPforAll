@@ -1,76 +1,143 @@
 ﻿@page "/items"
 
 @using ERPforAll.Shared.Models
+
 @inject HttpClient http
 
-<PageTitle>Produkte</PageTitle>
+<PageTitle>Kunden</PageTitle>
 
-<h1>Produkte</h1>
+<h1>Kunden</h1>
 
-<div class="container">
-    <div class="row py-5">
-        <div class="col">
-            <RadzenCard>
-                <RadzenDataList WrapItems="true" AllowPaging="true" Data="@items" TItem="Item" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
-                    <Template Context="product">
-                        <RadzenCard Style="width: 100%; padding: 0; overflow: hidden;">
-                            <div class="container">
-                                <div class="row" style="margin-left: calc(var(--bs-gutter-x) * -1); margin-right: calc(var(--bs-gutter-x) * -1)">
-                                    <div class="col-lg-3 p-3 product-title">
-                                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" Class="rz-color-secondary">@(product.Name)</RadzenText>
-                                    </div>
-                                    <div class="col-lg-7 p-3">
-                                        <div class="row d-flex">
-                                            <div class="col-md-6 col-lg-2">
-                                                <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="mb-0">In Stock</RadzenText>
-                                                <RadzenText TextStyle="TextStyle.Body2" class="mb-sm-2 mb-lg-0">@(product.Stocks.Sum(p => p.Amount))</RadzenText>
-                                            </div>
-                                            <div class="col-md-6 col-lg-2">
-                                                <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="mb-0">Description</RadzenText>
-                                                <RadzenText TextStyle="TextStyle.Body2" class="mb-sm-2 mb-lg-0">@(product.Description)</RadzenText>
-                                            </div>
-                                            <div class="col-md-6 col-lg-5">
-                                                <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="mb-0">Price</RadzenText>
-                                                <RadzenText TextStyle="TextStyle.Body2" class="mb-sm-2 mb-lg-0">@(product.Price)</RadzenText>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-2 p-3">
-                                        <RadzenButton Text="Order now" Class="w-100" />
-                                    </div>
-                                </div>
-                            </div>
-                        </RadzenCard>
-                    </Template>
-                </RadzenDataList>
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="New Item" Click="@InsertRow" Disabled=@(itemToInsert != null) />
+<RadzenDataGrid @ref="itemsGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                Data="@items" TItem="Item" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+    <Columns>
+        <RadzenDataGridColumn TItem="Item" Property="Id" Title="Item Id" />
+        <RadzenDataGridColumn TItem="Item" Property="Name" Title="Item">
+            <EditTemplate Context="item">
+                <RadzenTextBox @bind-Value="item.Name" Style="width:100%; display: block" Name="Name" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Item" Property="Description" Title="Description">
+            <EditTemplate Context="item">
+                <RadzenTextBox @bind-Value="item.Description" Style="width:100%; display: block" Name="Name" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Item" Property="Price" Title="Price">
+            <EditTemplate Context="item">
+                <RadzenNumeric @bind-Value="item.Price" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Item" Context="whateaver" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="item">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(item))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="item">
+                <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(item))" />
+                <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(item))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        @*        <RadzenDataGridColumn TItem="Item" Context="item" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="80px">
+        <Template Context="item">one
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(item))" @onclick:stopPropagation="true">
+        </RadzenButton>
+        </Template>
+        <EditTemplate Context="item">
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(item))">
+        </RadzenButton>
+        </EditTemplate>
+        </RadzenDataGridColumn>*@
+    </Columns>
+</RadzenDataGrid>
 
-            </RadzenCard>
-        </div>
-    </div>
-</div>
-
-<style>
-    .product-title {
-        min-height: 72px;
-        background-color: var(--rz-secondary-lighter);
-    }
-
-    .price-badge {
-        font-size: 16px;
-        font-weight: bold;
-        line-height: 20px;
-        padding: 8px;
-    }
-</style>
 
 @code {
-    Item[]? items;
+    RadzenDataGrid<Item>? itemsGrid;
+    IEnumerable<Item> items = new List<Item>();
 
     protected override async void OnInitialized()
     {
         base.OnInitialized();
 
-        items = await http.GetFromJsonAsync<Item[]>("items");
+        items = (await http.GetFromJsonAsync<Item[]>("items"))?.ToList() ?? new List<Item>();
+        StateHasChanged();
 
+    }
+    async Task EditRow(Item item)
+    {
+        await itemsGrid.EditRow(item);
+    }
+
+    async void OnUpdateRow(Item item)
+    {
+        if (item == itemToInsert)
+        {
+            itemToInsert = null;
+        }
+
+        _ = await http.PostAsJsonAsync($"items/{item.Id}", item);
+        StateHasChanged();
+    }
+
+    async Task SaveRow(Item item)
+    {
+        if (item == itemToInsert)
+        {
+            itemToInsert = null;
+        }
+
+        await itemsGrid.UpdateRow(item);
+    }
+
+    void CancelEdit(Item item)
+    {
+        if (item == itemToInsert)
+        {
+            itemToInsert = null;
+        }
+
+        itemsGrid.CancelEditRow(item);
+
+    }
+
+    //async Task DeleteRow(Item item)
+    //{
+    //    if (item == itemToInsert)
+    //    {
+    //        itemToInsert = null;
+    //    }
+
+    //    if (items.Contains(item))
+    //    {
+    //        dbContext.Remove<Item>(item);
+
+    //        // For demo purposes only
+    //        items.Remove(item);
+
+    //        // For production
+    //        //dbContext.SaveChanges();
+
+    //        await itemsGrid.Reload();
+    //    }
+    //    else
+    //    {
+    //        itemsGrid.CancelEditRow(item);
+    //    }
+    //}
+
+    Item? itemToInsert;
+
+    async Task InsertRow()
+    {
+        itemToInsert = new Item();
+
+        await itemsGrid.InsertRow(itemToInsert);
+    }
+
+    async void OnCreateRow(Item item)
+    {
+        _ = await http.PostAsJsonAsync("items", item);
+        StateHasChanged();
     }
 }

@@ -136,6 +136,8 @@ namespace ERPforAll.Server.Infrastructure
 
             modelBuilder.Entity<Stock>(entity =>
             {
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
+
                 entity.HasOne(d => d.Item)
                     .WithMany(p => p.Stocks)
                     .HasForeignKey(d => d.ItemId)

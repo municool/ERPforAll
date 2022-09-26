@@ -1,0 +1,156 @@
+﻿@page "/stocks"
+
+@using ERPforAll.Shared.Models
+
+@inject HttpClient http
+
+<PageTitle>Stocks</PageTitle>
+
+<h1>Stocks</h1>
+
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="New Stock" Click="@InsertRow" Disabled=@(stockToInsert != null) />
+<RadzenDataGrid @ref="stocksGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" EditMode="DataGridEditMode.Single"
+                Data="@stocks" TItem="Stock" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+    <Columns>
+        <RadzenDataGridColumn TItem="Stock" Property="Id" Title="Stock Id" />
+        <RadzenDataGridColumn TItem="Stock" Property="Warehouse.Name" Title="Warehouse">
+            <EditTemplate Context="stock">
+                <RadzenDropDown @bind-Value="stock.Warehouse" Data="@warehouses" TextProperty="Warehouse" ValueProperty="Warehouse" Style="width:100%; display: block;">
+                    <Template>
+                        @context.Name
+                    </Template>
+                </RadzenDropDown>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Stock" Property="Item.Name" Title="Item">
+            <EditTemplate Context="stock">
+                <RadzenDropDown @bind-Value="stock.Item" Data="@items" TextProperty="Item" ValueProperty="Item" Style="width:100%; display: block;">
+                    <Template>
+                        @context.Name
+                    </Template>
+                </RadzenDropDown>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Stock" Property="Amount" Title="Amount">
+            <EditTemplate Context="stock">
+                <RadzenNumeric @bind-Value="stock.Amount" Style="width:100%" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Stock" Context="whateaver" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+            <Template Context="stock">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(stock))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="stock">
+                <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(stock))" />
+                <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(stock))" />
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        @*        <RadzenDataGridColumn TItem="Stock" Context="stock" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="80px">
+        <Template Context="stock">one
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(stock))" @onclick:stopPropagation="true">
+        </RadzenButton>
+        </Template>
+        <EditTemplate Context="stock">
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-2" Click="@(args => DeleteRow(stock))">
+        </RadzenButton>
+        </EditTemplate>
+        </RadzenDataGridColumn>*@
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    RadzenDataGrid<Stock>? stocksGrid;
+    IEnumerable<Stock> stocks = new List<Stock>();
+    IEnumerable<Warehouse> warehouses = new List<Warehouse>();
+    IEnumerable<Item> items = new List<Item>();
+
+    protected override async void OnInitialized()
+    {
+        base.OnInitialized();
+
+        stocks = (await http.GetFromJsonAsync<Stock[]>("stock"))?.ToList() ?? new List<Stock>();
+        warehouses = (await http.GetFromJsonAsync<Warehouse[]>("warehouse"))?.ToList() ?? new List<Warehouse>();
+        items = (await http.GetFromJsonAsync<Item[]>("items"))?.ToList() ?? new List<Item>();
+
+        StateHasChanged();
+
+    }
+    async Task EditRow(Stock stock)
+    {
+        await stocksGrid.EditRow(stock);
+    }
+
+    async void OnUpdateRow(Stock stock)
+    {
+        if (stock == stockToInsert)
+        {
+            stockToInsert = null;
+        }
+
+        _ = await http.PostAsJsonAsync($"stock/{stock.Id}", stock);
+        StateHasChanged();
+    }
+
+    async Task SaveRow(Stock stock)
+    {
+        if (stock == stockToInsert)
+        {
+            stockToInsert = null;
+        }
+
+        await stocksGrid.UpdateRow(stock);
+    }
+
+    void CancelEdit(Stock stock)
+    {
+        if (stock == stockToInsert)
+        {
+            stockToInsert = null;
+        }
+
+        stocksGrid.CancelEditRow(stock);
+
+    }
+
+    //async Task DeleteRow(Stock stock)
+    //{
+    //    if (stock == stockToInsert)
+    //    {
+    //        stockToInsert = null;
+    //    }
+
+    //    if (stocks.Contains(stock))
+    //    {
+    //        dbContext.Remove<Stock>(stock);
+
+    //        // For demo purposes only
+    //        stocks.Remove(stock);
+
+    //        // For production
+    //        //dbContext.SaveChanges();
+
+    //        await stocksGrid.Reload();
+    //    }
+    //    else
+    //    {
+    //        stocksGrid.CancelEditRow(stock);
+    //    }
+    //}
+
+    Stock? stockToInsert;
+
+    async Task InsertRow()
+    {
+        stockToInsert = new Stock();
+
+        await stocksGrid.InsertRow(stockToInsert);
+    }
+
+    async void OnCreateRow(Stock stock)
+    {
+        _ = await http.PostAsJsonAsync("stock", stock);
+        StateHasChanged();
+    }
+}
